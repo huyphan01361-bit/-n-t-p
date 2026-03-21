@@ -2,40 +2,102 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Hệ Thống Ôn Tập CNXHKH</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hệ Thống Ôn Tập CNXHKH - VGU</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
-        .quiz-container { background: white; width: 100%; max-width: 750px; padding: 25px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); border: 2px solid transparent; }
-        .header { text-align: center; color: #1a5276; border-bottom: 2px solid #3498db; margin-bottom: 20px; padding-bottom: 10px; }
-        .question { font-size: 1.2em; font-weight: 600; color: #2c3e50; margin-bottom: 15px; line-height: 1.5; }
-        .option-btn { display: block; width: 100%; padding: 12px 15px; margin: 8px 0; border: 1px solid #d5dbdb; border-radius: 6px; background: #fff; cursor: pointer; text-align: left; font-size: 1em; transition: 0.2s; }
-        .option-btn:hover:not(:disabled) { background: #ebf5fb; border-color: #3498db; }
+        /* Tối ưu hóa cho mọi màn hình */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: #f4f7f6; 
+            display: flex; 
+            justify-content: center; 
+            padding: 10px; /* Giảm padding để tận dụng diện tích màn hình đt */
+            margin: 0;
+        }
+        .quiz-container { 
+            background: white; 
+            width: 100%; 
+            max-width: 750px; 
+            padding: 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+            box-sizing: border-box; /* Đảm bảo padding không làm tràn màn hình */
+        }
+        .header h2 { 
+            font-size: 1.2em; /* Thu nhỏ tiêu đề một chút trên đt */
+            color: #1a5276; 
+            margin: 0;
+        }
+        .header {
+            border-bottom: 2px solid #3498db;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+        .question { 
+            font-size: 1.1em; 
+            font-weight: 600; 
+            color: #2c3e50; 
+            margin-bottom: 15px; 
+            line-height: 1.4; 
+        }
+        .option-btn { 
+            display: block; 
+            width: 100%; 
+            padding: 15px; /* Tăng độ dày nút để dễ bấm bằng tay */
+            margin: 10px 0; 
+            border: 1px solid #d5dbdb; 
+            border-radius: 8px; 
+            background: #fff; 
+            cursor: pointer; 
+            text-align: left; 
+            font-size: 1em; 
+            transition: 0.2s;
+            -webkit-tap-highlight-color: transparent; /* Xóa vệt đen khi bấm trên đt */
+        }
         .correct { background: #2ecc71 !important; color: white; border-color: #27ae60 !important; }
         .wrong { background: #e74c3c !important; color: white; border-color: #c0392b !important; }
-        .review-tag { color: #e67e22; font-weight: bold; margin-right: 5px; }
-        .footer { margin-top: 25px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; padding-top: 15px; gap: 10px; }
         
-        button { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .footer { 
+            margin-top: 20px; 
+            display: flex; 
+            flex-wrap: wrap; /* Cho phép các nút xuống dòng nếu màn hình quá hẹp */
+            justify-content: space-between; 
+            align-items: center; 
+            border-top: 1px solid #eee; 
+            padding-top: 15px;
+            gap: 8px;
+        }
+        
+        #progress { width: 100%; text-align: center; font-size: 0.85em; margin-bottom: 10px; color: #7f8c8d; }
+
+        button { 
+            flex: 1; /* Các nút sẽ chia đều không gian */
+            min-width: 80px; 
+            padding: 12px 5px; 
+            border: none; 
+            border-radius: 6px; 
+            font-weight: bold; 
+            font-size: 0.9em;
+        }
         #next-btn { background: #3498db; color: white; }
-        #next-btn:disabled { background: #bdc3c7; cursor: not-allowed; }
         #prev-btn { background: #f39c12; color: white; }
-        #prev-btn:disabled { background: #bdc3c7; cursor: not-allowed; }
         #end-btn { background: #95a5a6; color: white; }
-        
-        #status { font-weight: bold; min-height: 24px; text-align: center; margin-bottom: 10px; font-size: 1.1em; }
+        button:disabled { background: #bdc3c7 !important; }
+
+        #status { font-weight: bold; min-height: 24px; text-align: center; margin-bottom: 10px; }
         .review-mode-active { border: 3px solid #e67e22; }
-        #progress { font-size: 0.9em; color: #7f8c8d; flex-grow: 1; }
     </style>
 </head>
 <body>
 
 <div class="quiz-container" id="main-container">
     <div class="header"><h2>Chủ nghĩa xã hội khoa học</h2></div>
+    <div id="progress">Đang tải...</div>
     <div id="status"></div>
-    <div id="question-text" class="question">Đang tải dữ liệu...</div>
+    <div id="question-text" class="question"></div>
     <div id="options-container"></div>
     <div class="footer">
-        <span id="progress">Đang tính toán...</span>
         <button id="prev-btn" onclick="prevQuestion()" disabled>Quay lại</button>
         <button id="end-btn" onclick="finishQuiz()">Kết thúc</button>
         <button id="next-btn" onclick="nextQuestion()" disabled>Tiếp theo</button>
