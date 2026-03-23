@@ -1,16 +1,9 @@
-Chào Huy, mình hiểu rồi! Lỗi này xảy ra là do trong file index.html cũ, mình đã để hàm startQuiz('cnxhkh') tự động chạy ngay khi trang vừa load xong, nên nó "nhảy" thẳng vào môn đó mà không đợi Quỳnh chọn ở Menu.
-
-Để sửa lỗi này và thực hiện các yêu cầu mới của bạn (xóa dòng chào cũ, thêm nút Kết thúc sớm), mình đã tinh chỉnh lại toàn bộ logic. Bây giờ, khi mở link lên, trang web sẽ dừng lại ở màn hình Menu để Quỳnh chọn môn học.
-
-Huy hãy copy đoạn mã mới nhất dưới đây và lưu đè vào file nhé:
-
-HTML
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hệ Thống Ôn Tập VGU - Made for Quỳnh</title>
+    <title>Hệ Thống Ôn Tập</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; display: flex; justify-content: center; padding: 10px; margin: 0; min-height: 100vh; align-items: center; }
         .quiz-container { background: white; width: 100%; max-width: 750px; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); box-sizing: border-box; position: relative; }
@@ -25,8 +18,9 @@ HTML
         button { flex: 1; min-width: 80px; padding: 12px 5px; border: none; border-radius: 6px; font-weight: bold; font-size: 0.9em; cursor: pointer; }
         #next-btn { background: #3498db; color: white; }
         #prev-btn { background: #f39c12; color: white; }
-        #exit-btn { background: #e74c3c; color: white; } /* Màu đỏ cho nút kết thúc sớm */
         #end-btn { background: #95a5a6; color: white; }
+        /* Thêm style cho nút kết thúc sớm */
+        #exit-btn { background: #e74c3c; color: white; } 
         button:disabled { background: #bdc3c7 !important; }
         #status { font-weight: bold; min-height: 24px; text-align: center; margin-bottom: 10px; }
         #menu-screen { text-align: center; width: 100%; }
@@ -4982,14 +4976,17 @@ ktct: [
     }
 
     function backToMenu() {
-        if(confirm("Dừng học để về menu hả Quỳnh?")) {
-            location.reload(); // Reload để reset sạch trạng thái về Menu
+        if(confirm("Bé muốn về menu hỏ?")) {
+            document.getElementById('menu-screen').classList.remove('hidden');
+            document.getElementById('quiz-screen').classList.add('hidden');
         }
     }
 
+    // Hàm xác nhận kết thúc sớm
     function confirmExitEarly() {
-        if(confirm("Bé Quỳnh muốn kết thúc sớm để xem tổng kết nhó? ✨")) {
-            finishQuiz();
+        if(confirm("Bé Quỳnh muốn kết thúc sớm bài học hỏ?")) {
+            isReviewMode = false; // Thoát chế độ ôn tập (nếu có)
+            finishQuiz(); // Chuyển đến màn hình kết thúc
         }
     }
 
@@ -5011,6 +5008,7 @@ ktct: [
         const qData = dataSource[activeIdx];
         const questionTextElement = document.getElementById('question-text');
         
+        // Không hiện số thứ tự câu hỏi
         if (isReviewMode) {
             container.classList.add('review-mode-active');
             questionTextElement.innerHTML = `<span class="review-tag">[ÔN CÂU SAI]</span> ` + qData.q;
@@ -5036,7 +5034,7 @@ ktct: [
             btn.onclick = () => {
                 if (i === qData.correct) {
                     btn.className = 'option-btn correct';
-                    document.getElementById('status').innerText = "Đúng rùi! Bé Quỳnh giỏi quá! ✨";
+                    document.getElementById('status').innerText = "Đúng rùi! Bé Quỳnh giỏi quá trời! ✨";
                     document.getElementById('status').style.color = "#27ae60";
                     document.getElementById('next-btn').disabled = false;
                     if (isReviewMode) qData.isNowCorrect = true;
@@ -5044,7 +5042,7 @@ ktct: [
                 } else {
                     btn.className = 'option-btn wrong';
                     btn.disabled = true;
-                    document.getElementById('status').innerText = "Sai rồi, cố lên Quỳnh!";
+                    document.getElementById('status').innerText = "Sai rùi nhó! Thử lại i";
                     document.getElementById('status').style.color = "#e74c3c";
                     if (!wrongQuestions.includes(qData)) { wrongQuestions.push(qData); }
                 }
@@ -5076,140 +5074,9 @@ ktct: [
     function finishQuiz() {
         document.getElementById('quiz-screen').innerHTML = `
             <div style='text-align:center; padding: 30px;'>
-                <h2 style='color:#27ae60'>🎉 Bài học đã kết thúc!</h2>
-                <p>Quỳnh giỏi lắm, đã hoàn thành bài ôn tập này!</p>
-                <button class="menu-btn" onclick="location.reload()">Học môn khác</button>
-            </div>`;
-    }
-</script>
-</body>
-</html>let activeData = [];
-    let mainIdx = 0;
-    let currentReviewIdx = 0;
-    let wrongQuestions = [];
-    let isReviewMode = false;
-
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-    }
-
-    function startQuiz(subject) {
-        activeData = [...dataLibrary[subject]];
-        if (activeData.length === 0) {
-            alert("Môn này chưa có câu hỏi Quỳnh ơi!");
-            return;
-        }
-        mainIdx = 0;
-        wrongQuestions = [];
-        isReviewMode = false;
-        shuffleArray(activeData);
-        document.getElementById('menu-screen').classList.add('hidden');
-        document.getElementById('quiz-screen').classList.remove('hidden');
-        document.getElementById('subject-title').innerText = subject === 'cnxhkh' ? "Chủ nghĩa xã hội khoa học" : "Kinh tế chính trị Mác - Lênin";
-        loadQuestion();
-    }
-
-    function backToMenu() {
-        if(confirm("Dừng học để về menu hả Quỳnh?")) {
-            location.reload(); // Reload để reset sạch trạng thái về Menu
-        }
-    }
-
-    function confirmExitEarly() {
-        if(confirm("Bé Quỳnh muốn kết thúc sớm để xem tổng kết nhó? ✨")) {
-            finishQuiz();
-        }
-    }
-
-    function loadQuestion() {
-        const dataSource = isReviewMode ? wrongQuestions : activeData;
-        const activeIdx = isReviewMode ? currentReviewIdx : mainIdx;
-        const container = document.getElementById('main-container');
-
-        document.getElementById('prev-btn').disabled = (activeIdx === 0);
-
-        if (activeIdx >= dataSource.length) {
-            if (!isReviewMode && wrongQuestions.length > 0) {
-                isReviewMode = true; currentReviewIdx = 0;
-                loadQuestion(); return;
-            }
-            finishQuiz(); return;
-        }
-
-        const qData = dataSource[activeIdx];
-        const questionTextElement = document.getElementById('question-text');
-        
-        if (isReviewMode) {
-            container.classList.add('review-mode-active');
-            questionTextElement.innerHTML = `<span class="review-tag">[ÔN CÂU SAI]</span> ` + qData.q;
-        } else {
-            container.classList.remove('review-mode-active');
-            questionTextElement.innerText = qData.q;
-        }
-
-        document.getElementById('progress').innerText = isReviewMode 
-            ? `Trị câu sai: ${activeIdx + 1} / ${dataSource.length}`
-            : `Tiến độ: ${activeIdx + 1} / ${activeData.length}`;
-            
-        document.getElementById('status').innerText = "";
-        document.getElementById('next-btn').disabled = true;
-
-        const optionsBox = document.getElementById('options-container');
-        optionsBox.innerHTML = '';
-
-        qData.options.forEach((opt, i) => {
-            const btn = document.createElement('button');
-            btn.innerText = opt;
-            btn.className = 'option-btn';
-            btn.onclick = () => {
-                if (i === qData.correct) {
-                    btn.className = 'option-btn correct';
-                    document.getElementById('status').innerText = "Đúng rùi! Bé Quỳnh giỏi quá! ✨";
-                    document.getElementById('status').style.color = "#27ae60";
-                    document.getElementById('next-btn').disabled = false;
-                    if (isReviewMode) qData.isNowCorrect = true;
-                    Array.from(optionsBox.children).forEach(b => b.onclick = null);
-                } else {
-                    btn.className = 'option-btn wrong';
-                    btn.disabled = true;
-                    document.getElementById('status').innerText = "Sai rồi, cố lên Quỳnh!";
-                    document.getElementById('status').style.color = "#e74c3c";
-                    if (!wrongQuestions.includes(qData)) { wrongQuestions.push(qData); }
-                }
-            };
-            optionsBox.appendChild(btn);
-        });
-    }
-
-    function nextQuestion() {
-        if (!isReviewMode) {
-            mainIdx++;
-        } else {
-            currentReviewIdx++;
-            if (currentReviewIdx >= wrongQuestions.length) {
-                wrongQuestions = wrongQuestions.filter(q => q.isNowCorrect !== true);
-                isReviewMode = false;
-                currentReviewIdx = 0;
-            }
-        }
-        loadQuestion();
-    }
-
-    function prevQuestion() {
-        if (isReviewMode) { if (currentReviewIdx > 0) currentReviewIdx--; }
-        else { if (mainIdx > 0) mainIdx--; }
-        loadQuestion();
-    }
-
-    function finishQuiz() {
-        document.getElementById('quiz-screen').innerHTML = `
-            <div style='text-align:center; padding: 30px;'>
-                <h2 style='color:#27ae60'>🎉 Bài học đã kết thúc!</h2>
-                <p>Quỳnh giỏi lắm, đã hoàn thành bài ôn tập này!</p>
-                <button class="menu-btn" onclick="location.reload()">Học môn khác</button>
+                <h2 style='color:#27ae60'>🎉 Chúc mừng bé Quỳnh nhó!</h2>
+                <p>bé Quỳnh giỏi quá i hoy!</p>
+                <button class="menu-btn" onclick="location.reload()">Bắt đầu sóng gió mới</button>
             </div>`;
     }
 </script>
